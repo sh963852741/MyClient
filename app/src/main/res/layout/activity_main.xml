@@ -4,24 +4,12 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-    <Button
-        android:id="@+id/connect"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="connect" />
 
     <Button
-        android:id="@+id/disconnect"
+        android:id="@+id/Select"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="disconnect" />
-
-
-    <Button
-        android:id="@+id/Receive"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Receive from message" />
+        android:text="Select pictures" />
 
 
     <Button

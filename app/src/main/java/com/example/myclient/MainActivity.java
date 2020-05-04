@@ -8,8 +8,6 @@ import android.os.Handler;
 import android.os.Message;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Parcelable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,16 +15,13 @@ import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,9 +31,6 @@ import droidninja.filepicker.utils.ContentUriUtils;
 
 public class MainActivity extends AppCompatActivity
 {
-    /**
-     * 主 变量
-     */
 
     // 主线程Handler
     // 用于将从服务器获取的消息显示出来
@@ -52,23 +44,9 @@ public class MainActivity extends AppCompatActivity
     // 为了方便展示,此处直接采用线程池进行线程管理,而没有一个个开线程
     private ExecutorService mThreadPool;
 
-    // 输入流读取器对象
-    InputStreamReader isr ;
-    BufferedReader br ;
-
-    // 接收服务器发送过来的消息
-    String response;
-
-
-    /**
-     * 按钮 变量
-     */
-
     // 连接 断开连接 发送数据到服务器 的按钮变量
-    private Button btnConnect, btnDisconnect, btnSend;
+    private Button btnSend,btnSelect;
 
-    // 显示接收服务器消息 按钮
-    private TextView Receive,receive_message;
 
     // 输入需要发送的消息 输入框
     private EditText mEdit;
@@ -80,57 +58,17 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // 初始化所有按钮
-        btnConnect = (Button) findViewById(R.id.connect);
-        btnDisconnect = (Button) findViewById(R.id.disconnect);
         btnSend = (Button) findViewById(R.id.send);
-        Receive = (Button) findViewById(R.id.Receive);
+        btnSelect = (Button) findViewById(R.id.Select);
 
         // 初始化线程池
         mThreadPool = Executors.newCachedThreadPool();
 
-        // 实例化主线程,用于更新接收过来的消息
-        mMainHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case 0:
-                        receive_message.setText(response);
-                        break;
-                }
-            }
-        };
-
-        /**
-         * 创建客户端 & 服务器的连接
-         */
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 利用线程池直接开启一个线程 & 执行该线程
-                mThreadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try
-                        {
-                            // 创建Socket对象 & 指定服务端的IP 及 端口号
-                            socket = new Socket("192.168.18.3", 8888);
-                            // 判断客户端和服务器是否连接成功
-                            System.out.println(socket.isConnected());
-                        }
-                        catch (IOException e)
-                        {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
-            }
-        });
 
         /**
          * 接收 服务器消息
          */
-        Receive.setOnClickListener(new View.OnClickListener() {
+        btnSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SelectFile();
@@ -142,42 +80,23 @@ public class MainActivity extends AppCompatActivity
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 利用线程池直接开启一个线程 & 执行该线程
-                mThreadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            SendFile();
-                        } catch (IOException | URISyntaxException e) {
-                            e.printStackTrace();
+                for (final Uri uri:filePaths)
+                {
+                    // 利用线程池直接开启一个线程 & 执行该线程
+                    mThreadPool.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                SendFile(uri);
+                            } catch (IOException | URISyntaxException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                });
-            }
-        });
-
-        /**
-         * 断开客户端 & 服务器的连接
-         */
-        btnDisconnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-
-                    // 断开 服务器发送到客户端 的连接，即关闭输入流读取器对象BufferedReader
-                    br.close();
-
-                    // 最终关闭整个Socket连接
-                    socket.close();
-
-                    // 判断客户端和服务器是否已经断开连接
-                    System.out.println(socket.isConnected());
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    });
                 }
             }
         });
+
     }
     public void SelectFile()
     {
@@ -187,7 +106,7 @@ public class MainActivity extends AppCompatActivity
                 .pickPhoto(this);
     }
 
-    public void SendFile() throws IOException, URISyntaxException {
+    public void SendFile(Uri uri) throws IOException, URISyntaxException {
         OutputStream outputStream = null;
         InputStream intputStream = null;
         Socket socket=null;
@@ -199,7 +118,7 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String path = ContentUriUtils.INSTANCE.getFilePath(this,filePaths.get(0));
+        String path = ContentUriUtils.INSTANCE.getFilePath(this,uri);
         byte[] recvBuffer = new byte[1024];
         byte[] sendBuffer = new byte[1024];
         // 发送文件信息
@@ -221,9 +140,12 @@ public class MainActivity extends AppCompatActivity
         while ((byteRead = in.read(sendBuffer)) != -1) {
             outputStream.write(sendBuffer);
         }
+        in.close();
         //校验文件
         intputStream.read(recvBuffer);
         outputStream.write("finish\0".getBytes());
+        intputStream.close();
+        outputStream.close();
         socket.close();
     }
 
