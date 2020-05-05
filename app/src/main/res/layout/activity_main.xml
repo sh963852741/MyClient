@@ -2,20 +2,38 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:gravity="center_vertical">
 
+    <EditText
+        android:id="@+id/ipAddr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="input ip address"/>
+
+    <EditText
+        android:id="@+id/portAddr"
+        android:layout_width="match_parent"
+        android:hint="input port address"
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/Select"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:text="Select pictures" />
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/btn_selector"
+        android:text="select photo" />
 
 
     <Button
         android:id="@+id/send"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/btn_selector"
         android:text="send"/>
 
 </LinearLayout>
